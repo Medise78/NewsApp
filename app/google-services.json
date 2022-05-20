@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "824541876001",
+    "project_id": "newsapp-a6f59",
+    "storage_bucket": "newsapp-a6f59.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824541876001:android:9db1b2a1d76bb8728ef860",
+        "android_client_info": {
+          "package_name": "com.mahdi.newsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "824541876001-kt9epv5qm9p9t9g8uoi2vl44kgdqc595.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCH-nFqs5s9gVWLvmUUlzluo5F64w6r4TY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "824541876001-kt9epv5qm9p9t9g8uoi2vl44kgdqc595.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
