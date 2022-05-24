@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,124 +48,131 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
-          homeViewModel : HomeViewModel ,
-          navController : NavController ,
-          userName : String? ,
-          authViewModel : AuthViewModel
+       homeViewModel : HomeViewModel ,
+       navController : NavController ,
+       userName : String? ,
+       authViewModel : AuthViewModel ,
 )
 {
-     val home = homeViewModel.news.collectAsState()
-     val currentQuery = homeViewModel.currentQuery.value
-     
-     val backdropScaffoldState =
-               rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
-     
-     val updateCategory : (String) -> Unit = { cat ->
-          homeViewModel.getCategory(cat)
-     }
-     
-     val updateLanguage :(String) -> Unit = {lan ->
-          homeViewModel.getLanguage(lan)
-     }
-     
-     val onClickDetail : (String) -> Unit = { url ->
-          val navMask = navMaskUrl(url)
-          navController.navigate("${NavDestination.DETAILS}/$navMask")
-     }
-     
-     val search : (String) -> Unit = { query->
-          homeViewModel.searchNews(query , sortBy = "publishedAt")
-     }
-     
-     val favoriteLike = homeViewModel::likedArticles
-     val navToFavorite : () -> Unit = {
-          navController.navigate(NavDestination.FAVORITE)
-     }
-     val isFavoriteLiked : (Articles) -> Boolean = homeViewModel::isArticleLiked
-     
-     NewHomeScreenContent(
-               news = home.value ,
-               userName = userName ,
-               onLogOut = {
-                    authViewModel.signOut()
-                    navController.navigate(NavDestination.SIGNIN)
-                    NavOptions.Builder().setPopUpTo(NavDestination.SIGNIN , false).build()
-               } ,
-               onChangeLanguage = updateLanguage ,
-               currentQuery = currentQuery ,
-               navToFavorite = navToFavorite ,
-               search = search ,
-               onNewsClick = onClickDetail ,
-               onLike = favoriteLike ,
-               isLiked = isFavoriteLiked ,
-               onCategorySelected = updateCategory ,
-               backdropScaffoldState = backdropScaffoldState ,
-     )
+      val home = homeViewModel.news.collectAsState()
+      val currentQuery = homeViewModel.currentQuery.value
+
+      val backdropScaffoldState =
+             rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
+
+      val updateCategory : (String) -> Unit = { cat ->
+            homeViewModel.getCategory(cat)
+      }
+
+      val updateLanguage : (String) -> Unit = { lan ->
+            homeViewModel.getLanguage(lan)
+      }
+
+      val onClickDetail : (String) -> Unit = { url ->
+            val navMask = navMaskUrl(url)
+            navController.navigate("${NavDestination.DETAILS}/$navMask")
+      }
+
+      val search : (String) -> Unit = { query ->
+            homeViewModel.searchNews(query , sortBy = "publishedAt")
+      }
+
+      val favoriteLike = homeViewModel::likedArticles
+      val navToFavorite : () -> Unit = {
+            navController.navigate(NavDestination.FAVORITE)
+      }
+      val isFavoriteLiked : (Articles) -> Boolean = homeViewModel::isArticleLiked
+
+      NewHomeScreenContent(
+            news = home.value ,
+            userName = userName ,
+            onLogOut = {
+                  authViewModel.signOut()
+                  navController.navigate(NavDestination.SIGNIN)
+                  NavOptions.Builder().setPopUpTo(NavDestination.SIGNIN , false).build()
+            } ,
+            onChangeLanguage = updateLanguage ,
+            currentQuery = currentQuery ,
+            navToFavorite = navToFavorite ,
+            search = search ,
+            onNewsClick = onClickDetail ,
+            onLike = favoriteLike ,
+            isLiked = isFavoriteLiked ,
+            onCategorySelected = updateCategory ,
+            backdropScaffoldState = backdropScaffoldState ,
+      )
 }
 
 @ExperimentalMaterialApi
 @Composable
 fun NewHomeScreenContent(
-          news : ApiState ,
-          userName : String? ,
-          onLogOut : () -> Unit ,
-          onChangeLanguage : (String) -> Unit ,
-          currentQuery : String ,
-          navToFavorite : () -> Unit ,
-          search : (String) -> Unit ,
-          onNewsClick : (String) -> Unit ,
-          onLike : (Articles , Boolean) -> Unit ,
-          isLiked : (Articles) -> Boolean ,
-          onCategorySelected : (String) -> Unit ,
-          backdropScaffoldState : BackdropScaffoldState ,
+       news : ApiState ,
+       userName : String? ,
+       onLogOut : () -> Unit ,
+       onChangeLanguage : (String) -> Unit ,
+       currentQuery : String ,
+       navToFavorite : () -> Unit ,
+       search : (String) -> Unit ,
+       onNewsClick : (String) -> Unit ,
+       onLike : (Articles , Boolean) -> Unit ,
+       isLiked : (Articles) -> Boolean ,
+       onCategorySelected : (String) -> Unit ,
+       backdropScaffoldState : BackdropScaffoldState ,
 )
 {
-     val scaffoldState = rememberScaffoldState()
-     val coroutineScope = rememberCoroutineScope()
-     val contentState = rememberLazyListState()
-     
-     Scaffold(
-               scaffoldState = scaffoldState ,
-               floatingActionButton = {
-                    if (contentState.firstVisibleItemIndex > 0){
-                         Floating {
+      val scaffoldState = rememberScaffoldState()
+      val coroutineScope = rememberCoroutineScope()
+      val contentState = rememberLazyListState()
+
+      Scaffold(
+            scaffoldState = scaffoldState ,
+            floatingActionButton = {
+                  if (contentState.firstVisibleItemIndex > 0)
+                  {
+                        Floating {
                               coroutineScope.launch {
-                                   contentState.animateScrollToItem(0)
+                                    contentState.animateScrollToItem(0)
                               }
-                         }
-                    }
-               } ,
-               floatingActionButtonPosition = FabPosition.End ,
-               drawerContent = {
-                    Drawer(
-                              userName = userName ,
-                              onLogOut = onLogOut ,
-                              onChangeLanguage = onChangeLanguage
-                    )
-               } ,
-               isFloatingActionButtonDocked = true
-     ) {
-          when (news)
-          {
-               is ApiState.Empty   ->
-               {
-                    Text(text = "Empty")
-               }
-               is ApiState.Loading ->
-               {
-                    CircularProgressIndicator(
+                        }
+                  }
+            } ,
+            floatingActionButtonPosition = FabPosition.End ,
+            drawerContent = {
+                  Drawer(
+                        userName = userName ,
+                        onLogOut = onLogOut ,
+                        onChangeLanguage = onChangeLanguage
+                  )
+            } ,
+            isFloatingActionButtonDocked = true
+      ) {
+            when (news)
+            {
+                  is ApiState.Empty   ->
+                  {
+                        Text(text = "Empty")
+                  }
+
+
+                  is ApiState.Loading ->
+                  {
+                        CircularProgressIndicator(
                               modifier = Modifier
-                                        .fillMaxSize(1f)
-                                        .wrapContentSize(Alignment.Center)
-                    )
-               }
-               is ApiState.Error   ->
-               {
-               
-               }
-               is ApiState.Success ->
-               {
-                    HomeScreenContent(
+                                    .fillMaxSize(1f)
+                                    .wrapContentSize(Alignment.Center)
+                        )
+                  }
+
+
+                  is ApiState.Error   ->
+                  {
+
+                  }
+
+
+                  is ApiState.Success ->
+                  {
+                        HomeScreenContent(
                               currentQuery = currentQuery ,
                               navToFavorite = navToFavorite ,
                               openDrawer = { coroutineScope.launch { scaffoldState.drawerState.open() } } ,
@@ -176,281 +184,303 @@ fun NewHomeScreenContent(
                               isLike = isLiked ,
                               onCategorySelected = onCategorySelected ,
                               backdropScaffoldState = backdropScaffoldState
-                    )
-               }
-          }
-     }
+                        )
+                  }
+            }
+      }
 }
 
 @Composable
 fun Floating(
-          onClick : () -> Unit ,
+       onClick : () -> Unit ,
 )
 {
-     FloatingActionButton(
-               onClick = onClick ,
-               backgroundColor = MaterialTheme.colors.primaryVariant
-     ) {
-          Icon(imageVector = Icons.Default.KeyboardArrowUp , contentDescription = "")
-     }
+      FloatingActionButton(
+            onClick = onClick ,
+            backgroundColor = MaterialTheme.colors.primaryVariant
+      ) {
+            Icon(imageVector = Icons.Default.KeyboardArrowUp , contentDescription = "")
+      }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreenContent(
-          currentQuery : String ,
-          navToFavorite : () -> Unit ,
-          openDrawer : () -> Unit ,
-          search : (String) -> Unit ,
-          lazyListState : LazyListState ,
-          news : List<Articles> ,
-          onNewsClick : (String) -> Unit ,
-          onLike : (Articles , Boolean) -> Unit ,
-          isLike : (Articles) -> Boolean ,
-          onCategorySelected : (String) -> Unit ,
-          backdropScaffoldState : BackdropScaffoldState ,
+       currentQuery : String ,
+       navToFavorite : () -> Unit ,
+       openDrawer : () -> Unit ,
+       search : (String) -> Unit ,
+       lazyListState : LazyListState ,
+       news : List<Articles> ,
+       onNewsClick : (String) -> Unit ,
+       onLike : (Articles , Boolean) -> Unit ,
+       isLike : (Articles) -> Boolean ,
+       onCategorySelected : (String) -> Unit ,
+       backdropScaffoldState : BackdropScaffoldState ,
 )
 {
-     BackdropScaffold(
-               appBar = {
-                    com.mahdi.newsapp.ui.common.TopAppBar(
-                              currentQuery = currentQuery ,
-                              navToFavorite = navToFavorite ,
-                              openDrawer = openDrawer ,
-                              search = search
-                    )
-               } ,
-               frontLayerContent = {
-                    NewsList(
-                              lazyListState = lazyListState ,
-                              news = news ,
-                              onNewsClick = onNewsClick ,
-                              onLike = onLike ,
-                              isLike = isLike
-                    )
-               } ,
-               backLayerContent = {
-                    CategoriesList(
-                              categories = fromCategory.keys.toList() ,
-                              onCategorySelected = onCategorySelected
-                    )
-               } ,
-               scaffoldState = backdropScaffoldState ,
-               frontLayerBackgroundColor = MaterialTheme.colors.background ,
-               frontLayerScrimColor = Color.Unspecified ,
-               backLayerBackgroundColor = MaterialTheme.colors.primary,
-               persistentAppBar = true
-     
-     )
+      BackdropScaffold(
+            appBar = {
+                  com.mahdi.newsapp.ui.common.TopAppBar(
+                        currentQuery = currentQuery ,
+                        navToFavorite = navToFavorite ,
+                        openDrawer = openDrawer ,
+                        search = search
+                  )
+            } ,
+            frontLayerContent = {
+                  NewsList(
+                        lazyListState = lazyListState ,
+                        news = news ,
+                        onNewsClick = onNewsClick ,
+                        onLike = onLike ,
+                        isLike = isLike
+                  )
+            } ,
+            backLayerContent = {
+                  CategoriesList(
+                        categories = fromCategory.keys.toList() ,
+                        onCategorySelected = onCategorySelected
+                  )
+            } ,
+            scaffoldState = backdropScaffoldState ,
+            frontLayerBackgroundColor = MaterialTheme.colors.background ,
+            frontLayerScrimColor = Color.Unspecified ,
+            backLayerBackgroundColor = MaterialTheme.colors.primary ,
+            persistentAppBar = true
+
+      )
 }
 
 @Composable
 fun Drawer(
-          userName : String? ,
-          onLogOut : () -> Unit ,
-          modifier : Modifier = Modifier ,
-          onChangeLanguage : (String) -> Unit ,
+       userName : String? ,
+       onLogOut : () -> Unit ,
+       modifier : Modifier = Modifier ,
+       onChangeLanguage : (String) -> Unit ,
 )
 {
-     var expanded by remember {
-          mutableStateOf(false)
-     }
-     
-     var selectedText by remember {
-          mutableStateOf("EN")
-     }
-     
-     Surface(color = MaterialTheme.colors.primarySurface) {
-          Text(text = "User ${userName?.substringBefore('@')}")
-          Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp) ,
-                    modifier = modifier
-                              .fillMaxSize()
-                              .padding(24.dp , top = 48.dp)
-          ) {
-               Text(text = "News")
-               Text(text = "Favorites")
-               Button(onClick = { expanded = true }) {
-                    DropdownMenu(expanded = expanded , onDismissRequest = { expanded = false }) {
-                         listOf("US" , "RU").forEach {
-                              DropdownMenuItem(onClick = {
-                                   onChangeLanguage(it)
-                                   expanded = false
-                                   selectedText = it
-                              }) {
-                                   Text(text = it)
+      var expanded by remember {
+            mutableStateOf(false)
+      }
+
+      val languageList = listOf<String>("US" , "RU")
+
+      var selectedText : String by remember {
+            mutableStateOf(languageList[0])
+      }
+
+      Surface(color = MaterialTheme.colors.primarySurface) {
+
+            Column(
+                  verticalArrangement = Arrangement.spacedBy(8.dp) ,
+                  modifier = modifier
+                        .fillMaxSize()
+                        .padding(24.dp , top = 48.dp)
+            ) {
+
+                  Text(text = "User ${userName?.substringBefore('@')}")
+                  Spacer(modifier = Modifier.padding(10.dp))
+                  Text(text = "News")
+                  Divider()
+                  Text(text = "Language")
+                  Spacer(modifier = Modifier.padding(8.dp))
+                  Button(onClick = { expanded = true } ,
+                         colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)) {
+                        Text(text = selectedText , modifier = Modifier.alpha(0.6f))
+                        DropdownMenu(expanded = expanded ,
+                                     onDismissRequest = { expanded = false }) {
+                              listOf("US" , "RU").forEach { language ->
+                                    DropdownMenuItem(onClick = {
+                                          onChangeLanguage(language)
+                                          expanded = false
+                                          selectedText = language
+                                    }) {
+                                          Text(text = language , color = Color.Black)
+                                    }
                               }
-                         }
-                    }
-               }
-               TextButton(onClick = onLogOut) {
-                    Text(text = "LogOut")
-               }
-          }
-     }
+                        }
+                  }
+                  Box(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 60.dp) ,
+                      contentAlignment = Alignment.BottomCenter) {
+                        TextButton(onClick = onLogOut ,
+                                   colors = ButtonDefaults.buttonColors(
+                                         backgroundColor = Color.White) ,
+                                   modifier = Modifier
+                                         .fillMaxWidth(0.7f)
+                                         .align(
+                                               Alignment.BottomCenter)) {
+                              Text(text = "Logout" , color = Color.Black)
+                        }
+                  }
+
+            }
+      }
 }
 
 @Composable
 fun CategoriesList(
-          categories : List<String> ,
-          onCategorySelected : (String) -> Unit ,
+       categories : List<String> ,
+       onCategorySelected : (String) -> Unit ,
 )
 {
-     val scrollState = rememberScrollState()
-     
-     Row(
-               modifier = Modifier.horizontalScroll(scrollState) ,
-               horizontalArrangement = Arrangement.Center
-     ) {
-          for (i in categories)
-          {
-               CategoryItem(category = i , onCategorySelected = onCategorySelected)
-          }
-     }
+      val scrollState = rememberScrollState()
+
+      Row(
+            modifier = Modifier.horizontalScroll(scrollState) ,
+            horizontalArrangement = Arrangement.Center
+      ) {
+            for (i in categories)
+            {
+                  CategoryItem(category = i , onCategorySelected = onCategorySelected)
+            }
+      }
 }
 
 @Composable
 fun CategoryItem(
-          category : String ,
-          onCategorySelected : (String) -> Unit ,
+       category : String ,
+       onCategorySelected : (String) -> Unit ,
 )
 {
-     Text(
-               text = category ,
-               style = MaterialTheme.typography.subtitle2 ,
-               modifier = Modifier
-                         .padding(15.dp)
-                         .clickable { onCategorySelected(category.lowercase()) }
-     )
+      Text(
+            text = category ,
+            style = MaterialTheme.typography.subtitle2 ,
+            modifier = Modifier
+                  .padding(15.dp)
+                  .clickable { onCategorySelected(category.lowercase()) }
+      )
 }
 
 @Composable
 fun NewsList(
-          lazyListState : LazyListState ,
-          news : List<Articles> ,
-          onNewsClick : (String) -> Unit ,
-          onLike : (Articles , Boolean) -> Unit ,
-          isLike : (Articles) -> Boolean ,
+       lazyListState : LazyListState ,
+       news : List<Articles> ,
+       onNewsClick : (String) -> Unit ,
+       onLike : (Articles , Boolean) -> Unit ,
+       isLike : (Articles) -> Boolean ,
 )
 {
-     LazyColumn(
-               contentPadding = PaddingValues(10.dp),
-               state = lazyListState ,
-               verticalArrangement = Arrangement.spacedBy(10.dp)
-     ) {
-          items(news , key = { it.id }) {
-                    ArticleItem(
-                              articles = it ,
-                              onNewsClick = onNewsClick ,
-                              onLike = onLike ,
-                              isLike = isLike(it)
-                    )
-          }
-     }
+      LazyColumn(
+            contentPadding = PaddingValues(10.dp) ,
+            state = lazyListState ,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+            items(news , key = { it.id }) {
+                  ArticleItem(
+                        articles = it ,
+                        onNewsClick = onNewsClick ,
+                        onLike = onLike ,
+                        isLike = isLike(it)
+                  )
+            }
+      }
 }
 
 @Composable
 fun ArticleItem(
-          modifier : Modifier = Modifier ,
-          articles : Articles ,
-          onNewsClick : (String) -> Unit ,
-          onLike : (Articles , Boolean) -> Unit ,
-          isLike : Boolean ,
+       modifier : Modifier = Modifier ,
+       articles : Articles ,
+       onNewsClick : (String) -> Unit ,
+       onLike : (Articles , Boolean) -> Unit ,
+       isLike : Boolean ,
 )
 {
-     val context = LocalContext.current
-     val clipboardManager = LocalClipboardManager.current
-     
-     Card(
-               modifier = modifier
-                         .wrapContentSize()
-                         .clip(RoundedCornerShape(12.dp))
-                         .pointerInput(Unit) {
-                              detectTapGestures(
-                                        onLongPress = {
-                                             clipboardManager.setText(AnnotatedString(articles.url))
-                                             Toast
-                                                       .makeText(context ,
-                                                                 "Copied" ,
-                                                                 Toast.LENGTH_SHORT)
-                                                       .show()
-                                        } ,
-                                        onTap = {
-                                             onNewsClick(articles.url)
-                                        }
+      val context = LocalContext.current
+      val clipboardManager = LocalClipboardManager.current
+
+      Card(
+            modifier = modifier
+                  .wrapContentSize()
+                  .clip(RoundedCornerShape(12.dp))
+                  .pointerInput(Unit) {
+                        detectTapGestures(
+                              onLongPress = {
+                                    clipboardManager.setText(AnnotatedString(articles.url))
+                                    Toast
+                                          .makeText(context ,
+                                                    "Copied" ,
+                                                    Toast.LENGTH_SHORT)
+                                          .show()
+                              } ,
+                              onTap = {
+                                    onNewsClick(articles.url)
+                              }
+                        )
+                  }
+      ) {
+            Column {
+                  Image(painter = rememberImagePainter(data = articles.urlToImage , builder = {
+                        crossfade(true)
+                        placeholder(null)
+                  }) ,
+                        contentDescription = "newsImage" ,
+                        modifier = Modifier
+                              .fillMaxWidth()
+                              .aspectRatio(2f) ,
+                        contentScale = ContentScale.FillWidth
+                  )
+                  Column(
+                        modifier = modifier.padding(8.dp)
+                  ) {
+                        Text(text = articles.title , style = MaterialTheme.typography.h6)
+                        Text(text = articles.description)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                              Text(
+                                    text = articles.author ,
+                                    style = MaterialTheme.typography.subtitle2 ,
+                                    modifier = modifier
+                                          .weight(1f)
+                                          .wrapContentWidth(Alignment.Start)
                               )
-                         }
-     ) {
-          Column {
-               Image(painter = rememberImagePainter(data = articles.urlToImage , builder = {
-                    crossfade(true)
-                    placeholder(null)
-               }) ,
-                     contentDescription = "newsImage" ,
-                     modifier = Modifier
-                               .fillMaxWidth()
-                               .aspectRatio(2f) ,
-                     contentScale = ContentScale.FillWidth
-               )
-               Column(
-                         modifier = modifier.padding(8.dp)
-               ) {
-                    Text(text = articles.title , style = MaterialTheme.typography.h6)
-                    Text(text = articles.description)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                         Text(
-                                   text = articles.author ,
-                                   style = MaterialTheme.typography.subtitle2 ,
-                                   modifier = modifier
-                                             .weight(1f)
-                                             .wrapContentWidth(Alignment.Start)
-                         )
-                         Row(modifier = modifier
-                                   .wrapContentWidth(Alignment.End)
-                                   .weight(1f)) {
-                              SocialButtons(
-                                        articles = articles ,
-                                        context = context ,
-                                        onLike = onLike ,
-                                        likeState = isLike
-                              )
-                         }
-                    }
-               }
-          }
-     }
+                              Row(modifier = modifier
+                                    .wrapContentWidth(Alignment.End)
+                                    .weight(1f)) {
+                                    SocialButtons(
+                                          articles = articles ,
+                                          context = context ,
+                                          onLike = onLike ,
+                                          likeState = isLike
+                                    )
+                              }
+                        }
+                  }
+            }
+      }
 }
 
 @Composable
 fun SocialButtons(
-          articles : Articles ,
-          context : Context ,
-          onLike : (Articles , Boolean) -> Unit ,
-          likeState : Boolean ,
+       articles : Articles ,
+       context : Context ,
+       onLike : (Articles , Boolean) -> Unit ,
+       likeState : Boolean ,
 )
 {
-     var isLiked by remember {
-          mutableStateOf(likeState)
-     }
-     
-     val likedButton = if (isLiked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp
-     
-     IconButton(onClick = {
-          onLike(articles , ! isLiked)
-          isLiked = ! isLiked
-     }) {
-          Icon(imageVector = likedButton , contentDescription = "likedButton")
-     }
-     
-     IconButton(onClick = {
-          val sendIntent = Intent().apply {
-               action = Intent.ACTION_SEND
-               putExtra(Intent.EXTRA_TEXT , articles.url)
-               type = "text/plain"
-          }
-          val sharedIntent = Intent.createChooser(sendIntent , null)
-          context.startActivity(sharedIntent)
-     }) {
-          Icon(imageVector = Icons.Default.Share , contentDescription = "share")
-     }
+      var isLiked by remember {
+            mutableStateOf(likeState)
+      }
+
+      val likedButton = if (isLiked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp
+
+      IconButton(onClick = {
+            onLike(articles , ! isLiked)
+            isLiked = ! isLiked
+      }) {
+            Icon(imageVector = likedButton , contentDescription = "likedButton")
+      }
+
+      IconButton(onClick = {
+            val sendIntent = Intent().apply {
+                  action = Intent.ACTION_SEND
+                  putExtra(Intent.EXTRA_TEXT , articles.url)
+                  type = "text/plain"
+            }
+            val sharedIntent = Intent.createChooser(sendIntent , null)
+            context.startActivity(sharedIntent)
+      }) {
+            Icon(imageVector = Icons.Default.Share , contentDescription = "share")
+      }
 }
